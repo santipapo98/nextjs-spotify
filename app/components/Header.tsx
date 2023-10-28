@@ -2,10 +2,15 @@
 import React from 'react'
 import { useRouter } from 'next/navigation';
 import { twMerge } from 'tailwind-merge';
-import {RxCaretLeft, RxCaretRight} from 'react-icons/rx'
-import {HiHome} from 'react-icons/hi'
+import { RxCaretLeft, RxCaretRight } from 'react-icons/rx'
+import { HiHome } from 'react-icons/hi'
 import { BiSearch } from 'react-icons/bi';
+import { FaUserAlt } from 'react-icons/fa';
 import Button from './Button';
+import useAuthModal from '@/hooks/useAuthModal';
+import { useSupabaseClient } from '@supabase/auth-helpers-react';
+import { useUser } from '@/hooks/useUser';
+import { toast } from "react-hot-toast"
 
 interface HeaderProps {
     children: React.ReactNode;
@@ -15,9 +20,22 @@ interface HeaderProps {
 const Header: React.FC<HeaderProps> = ({children, className}: HeaderProps) => {
     
     const router = useRouter()
+    const authModal = useAuthModal()
 
-    const handleLogout = () => {
-        // Handle logout in the future
+    const supabaseClient = useSupabaseClient()
+
+    const {user} = useUser()
+
+    const handleLogout = async () => {
+        const {error} = await supabaseClient.auth.signOut()
+        //TODO: Reset any playing songs in the future
+        router.refresh()
+
+        if(error) {
+            toast.error(error.message)   
+        } else {
+            toast.success("logged out successfully")
+        }
     }
 
   return (
@@ -99,7 +117,18 @@ const Header: React.FC<HeaderProps> = ({children, className}: HeaderProps) => {
             justify-between
             items-center
             gap-x-4'>
-                <>
+                {user ? (
+                    <div className='
+                        flex
+                        gap-x-4
+                        items-center
+                    '>
+                        <Button className='bg-white px-6 py-2' onClick={handleLogout}>Logout</Button>
+                        <Button className='bg-white' onClick={() => router.push('/account')}>
+                            <FaUserAlt/>
+                        </Button>
+                    </div>
+                ) : (<>
                     <div>
                         <Button
                         className='
@@ -107,7 +136,7 @@ const Header: React.FC<HeaderProps> = ({children, className}: HeaderProps) => {
                             text-neutral-300
                             font-medium
                         '
-                        onClick={() => {}}>
+                        onClick={authModal.onOpen}>
                             Sign up
                         </Button>                        
                     </div>
@@ -118,11 +147,11 @@ const Header: React.FC<HeaderProps> = ({children, className}: HeaderProps) => {
                             px-6
                             py-2
                         '
-                        onClick={() => {}}>
+                        onClick={authModal.onOpen}>
                             Log in
                         </Button>                        
                     </div>
-                </>
+                </>)} 
             </div>
         </div>
         {children}

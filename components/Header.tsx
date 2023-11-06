@@ -11,6 +11,7 @@ import useAuthModal from '@/hooks/useAuthModal';
 import { useSupabaseClient } from '@supabase/auth-helpers-react';
 import { useUser } from '@/hooks/useUser';
 import { toast } from "react-hot-toast"
+import usePlayer from '@/hooks/usePlayer';
 
 interface HeaderProps {
     children: React.ReactNode;
@@ -21,14 +22,14 @@ const Header: React.FC<HeaderProps> = ({children, className}: HeaderProps) => {
     
     const router = useRouter()
     const authModal = useAuthModal()
-
+    const player = usePlayer()
     const supabaseClient = useSupabaseClient()
 
     const {user} = useUser()
 
     const handleLogout = async () => {
         const {error} = await supabaseClient.auth.signOut()
-        //TODO: Reset any playing songs in the future
+        player.reset()
         router.refresh()
 
         if(error) {
@@ -86,7 +87,7 @@ const Header: React.FC<HeaderProps> = ({children, className}: HeaderProps) => {
                 </button>
             </div>
             <div className='flex md:hidden gap-x-2 items-center'>
-                <button className='
+                <button onClick={() => router.push('/')}  className='
                     rounded-full
                     p-2
                     bg-white
@@ -99,7 +100,7 @@ const Header: React.FC<HeaderProps> = ({children, className}: HeaderProps) => {
                     <HiHome size={20} className='text-black'/>
                 </button>
 
-                <button className='
+                <button onClick={() => router.push('/search')}  className='
                     rounded-full
                     p-2
                     bg-white
@@ -124,9 +125,9 @@ const Header: React.FC<HeaderProps> = ({children, className}: HeaderProps) => {
                         items-center
                     '>
                         <Button className='bg-white px-6 py-2' onClick={handleLogout}>Logout</Button>
-                        <Button className='bg-white' onClick={() => router.push('/account')}>
+                        {/* <Button className='bg-white' onClick={() => router.push('/account')}>
                             <FaUserAlt/>
-                        </Button>
+                        </Button> */}
                     </div>
                 ) : (<>
                     <div>
